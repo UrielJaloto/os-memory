@@ -13,6 +13,7 @@ A interface do simulador pode ser por linha de comando (terminal) e deve oferece
 Visualizar memória: esta opção deve exibir o porcentual de memória livre e cada quadro da memória física, com seu respectivo valor. Inicialmente, todos os quadros devem estar livres e vazios.
 Criar processo: para criação do processo, o usuário deve informar um número inteiro que identifica o processo e o tamanho do processo em bytes. Se o tamanho informado for maior que o tamanho máximo configurado, uma mensagem deve ser exibida e um novo valor deve ser solicitado. Se não houver memória suficiente para alocar o processo, uma mensagem deve ser exibida e o usuário deve poder solicitar outra opção.
 Visualizar tabela de páginas: esta opção deve exibir o tamanho do processo e a tabela de páginas para o processo identificado pelo número inteiro informado pelo usuário.
+
 Requisitos
 O programa pode ser escrito em qualquer linguagem que vocês consigam apresentar código e execução em sala de aula;
 As seguintes informações devem ser configuráveis no programa:

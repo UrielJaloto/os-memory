@@ -1,5 +1,5 @@
 {
-  "memoria_fisica_size": 33,
-  "memoria_logica_size": 64,
-  "page_size": 4
+  "tamanho_memoria_fisica": 65536,
+  "tamanho_pagina": 4096,
+  "tamanho_maximo_processo": 16384
 }
