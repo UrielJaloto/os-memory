@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"os-memory/pkg/manager"
-	"os-memory/pkg/models"
 )
 
 type CLI struct {

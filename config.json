@@ -1,5 +1,5 @@
 {
-  "tamanho_memoria_fisica": 65536,
-  "tamanho_pagina": 4096,
-  "tamanho_maximo_processo": 16384
+  "tamanho_memoria_fisica": 128,
+  "tamanho_pagina": 16,
+  "tamanho_maximo_processo": 64
 }
