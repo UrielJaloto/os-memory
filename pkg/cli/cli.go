@@ -11,6 +11,15 @@ import (
 	"os-memory/pkg/manager"
 )
 
+const (
+	colorReset  = "\033[0m"
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
+	colorCyan   = "\033[36m"
+	colorBold   = "\033[1m"
+)
+
 type CLI struct {
 	manager *manager.MemoryManager
 	reader  *bufio.Reader
@@ -25,15 +34,19 @@ func NewCLI(m *manager.MemoryManager) *CLI {
 
 func (c *CLI) Run() {
 	for {
+		c.clearScreen()
 		c.displayMenu()
 		choiceStr, _ := c.reader.ReadString('\n')
 		choice, err := strconv.Atoi(strings.TrimSpace(choiceStr))
 		if err != nil {
-			fmt.Println("\nOpção inválida. Por favor, digite um número.")
+			fmt.Println(colorRed, "\nOpção inválida. Por favor, digite um número.", colorReset)
+			c.pause()
 			continue
 		}
 
-		fmt.Println("---")
+		c.clearScreen()
+		var needsPause bool = true
+
 		switch choice {
 		case 1:
 			c.handleViewMemory()
@@ -42,29 +55,47 @@ func (c *CLI) Run() {
 		case 3:
 			c.handleViewPageTable()
 		case 0:
-			fmt.Println("Encerrando simulador...")
+			fmt.Println(colorCyan, "Encerrando simulador...", colorReset)
+			needsPause = false
 			return
 		default:
-			fmt.Println("Opção inválida. Tente novamente.")
+			fmt.Println(colorRed, "Opção inválida. Tente novamente.", colorReset)
 		}
-		fmt.Println("---")
+
+		if needsPause {
+			c.pause()
+		}
 	}
 }
 
+func (c *CLI) clearScreen() {
+	fmt.Print("\033[H\033[2J")
+}
+
+func (c *CLI) pause() {
+	fmt.Print(colorYellow, "\n\n(Pressione ENTER para continuar...)", colorReset)
+	c.reader.ReadString('\n')
+}
+
+func (c *CLI) printHeader(title string) {
+	fmt.Printf("%s%s== %s ==%s\n\n", colorBold, colorCyan, title, colorReset)
+}
+
 func (c *CLI) displayMenu() {
-	fmt.Println("\n--- Simulador de Gerenciamento de Memória ---")
+	fmt.Printf("%s%s--- Simulador de Gerenciamento de Memória ---%s\n", colorBold, colorCyan, colorReset)
 	fmt.Println("1. Visualizar Memória")
 	fmt.Println("2. Criar Processo")
 	fmt.Println("3. Visualizar Tabela de Páginas de um Processo")
-	fmt.Println("0. Sair")
-	fmt.Print("Escolha uma opção: ")
+	fmt.Printf("%s0. Sair%s\n", colorRed, colorReset)
+	fmt.Print(colorYellow, "\nEscolha uma opção: ", colorReset)
 }
 
 func (c *CLI) handleViewMemory() {
+	c.printHeader("Visualizar Memória")
 	percentage, frameStatus, frameSamples := c.manager.GetMemoryStatus()
 
-	fmt.Printf("Memória Livre: %.2f%%\n\n", percentage)
-	fmt.Println("Estado dos Quadros (Frames):")
+	fmt.Printf("%sMemória Livre: %.2f%%%s\n\n", colorBold, percentage, colorReset)
+	fmt.Printf("%sEstado dos Quadros (Frames):%s\n", colorBold, colorReset)
 
 	if len(frameStatus) == 0 {
 		fmt.Println("Nenhum quadro de memória configurado.")
@@ -72,46 +103,56 @@ func (c *CLI) handleViewMemory() {
 	}
 
 	for i, status := range frameStatus {
-		fmt.Printf("  Quadro %d: %-20s %s\n", i, status, frameSamples[i])
+		statusStr := status
+		if status == "Livre" {
+			statusStr = fmt.Sprintf("%s%-20s%s", colorGreen, status, colorReset)
+		} else {
+			statusStr = fmt.Sprintf("%s%-20s%s", colorYellow, status, colorReset)
+		}
+
+		fmt.Printf("  Quadro %d: %s %s\n", i, statusStr, frameSamples[i])
 	}
 }
 
 func (c *CLI) handleCreateProcess() {
+	c.printHeader("Criar Novo Processo")
+
 	id, err := c.readInt("Digite o ID do processo: ")
 	if err != nil {
-		fmt.Printf("Erro ao ler ID: %v\n", err)
+		fmt.Printf("%sErro ao ler ID: %v%s\n", colorRed, err, colorReset)
 		return
 	}
 
 	size, err := c.readInt("Digite o tamanho do processo (em bytes): ")
 	if err != nil {
-		fmt.Printf("Erro ao ler tamanho: %v\n", err)
+		fmt.Printf("%sErro ao ler tamanho: %v%s\n", colorRed, err, colorReset)
 		return
 	}
 
 	err = c.manager.CreateProcess(id, size)
 	if err != nil {
-		fmt.Printf("\nErro ao criar processo: %v\n", err)
+		fmt.Printf("\n%sErro ao criar processo: %v%s\n", colorRed, err, colorReset)
 		return
 	}
 
-	fmt.Println("\nProcesso criado com sucesso!")
+	fmt.Printf("\n%sProcesso criado com sucesso!%s\n", colorGreen, colorReset)
 }
 
 func (c *CLI) handleViewPageTable() {
+	c.printHeader("Visualizar Tabela de Páginas")
 	id, err := c.readInt("Digite o ID do processo: ")
 	if err != nil {
-		fmt.Printf("Erro ao ler ID: %v\n", err)
+		fmt.Printf("%sErro ao ler ID: %v%s\n", colorRed, err, colorReset)
 		return
 	}
 
 	size, table, err := c.manager.GetProcessPageTable(id)
 	if err != nil {
-		fmt.Printf("\nErro ao visualizar tabela: %v\n", err)
+		fmt.Printf("\n%sErro ao visualizar tabela: %v%s\n", colorRed, err, colorReset)
 		return
 	}
 
-	fmt.Printf("\nTabela de Páginas do Processo %d (Tamanho: %d B):\n", id, size)
+	fmt.Printf("\n%sTabela de Páginas do Processo %d (Tamanho: %d B):%s\n", colorBold, id, size, colorReset)
 	if len(table.Entries) == 0 {
 		fmt.Println("  Processo não possui páginas alocadas.")
 		return
@@ -130,7 +171,7 @@ func (c *CLI) handleViewPageTable() {
 }
 
 func (c *CLI) readInt(prompt string) (int, error) {
-	fmt.Print(prompt)
+	fmt.Print(colorYellow, prompt, colorReset)
 	inputStr, _ := c.reader.ReadString('\n')
 	input, err := strconv.Atoi(strings.TrimSpace(inputStr))
 	if err != nil {
