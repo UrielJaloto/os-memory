@@ -1,10 +1,25 @@
 package main
 
+import (
+	"fmt"
+	"sistop/internal"
+)
+
+const PAGE_SIZE = 4096
+
 func main() {
+	cfg, err := internal.NewConfig("./config.json")
+	if err != nil {
+		panic(err)
+	}
 
-	memFisica := make([]byte, 500000000)
-	tui := &tui{}
-	memLogicaSize := tui.getMemoriaLogicaSize()
+	fmt.Println("Config loaded:", cfg)
 
-	memLogica := make([]byte, memLogicaSize)
+	// tui := &tui{}
+	// memFisicaSize := tui.getMemoriaFisicaSize()
+
+	// memFisica := make([]byte, memFisicaSize)
+	// memLogicaSize := tui.getMemoriaLogicaSize()
+
+	// memLogica := make([]byte, memLogicaSize)
 }
