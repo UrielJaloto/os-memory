@@ -62,7 +62,7 @@ func (c *CLI) displayMenu() {
 }
 
 func (c *CLI) handleViewMemory() {
-	percentage, frameStatus := c.manager.GetMemoryStatus()
+	percentage, frameStatus, frameSamples := c.manager.GetMemoryStatus()
 
 	fmt.Printf("Memória Livre: %.2f%%\n\n", percentage)
 	fmt.Println("Estado dos Quadros (Frames):")
@@ -73,7 +73,7 @@ func (c *CLI) handleViewMemory() {
 	}
 
 	for i, status := range frameStatus {
-		fmt.Printf("  Quadro %d: %s\n", i, status)
+		fmt.Printf("  Quadro %d: %-20s %s\n", i, status, frameSamples[i])
 	}
 }
 

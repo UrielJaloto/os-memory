@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strings"
 	"time"
 
 	"os-memory/pkg/config"
@@ -112,9 +113,10 @@ func (m *MemoryManager) initializeFrameData(frameIndex int) {
 	rand.Read(frameSlice)
 }
 
-func (m *MemoryManager) GetMemoryStatus() (float64, []string) {
+func (m *MemoryManager) GetMemoryStatus() (float64, []string, []string) {
 	frameStatus := make([]string, m.numFrames)
-	
+	frameSamples := make([]string, m.numFrames)
+
 	reverseMap := make(map[int]string)
 	for procID, process := range m.processes {
 		for page, frame := range process.PageTable.Entries {
@@ -127,19 +129,49 @@ func (m *MemoryManager) GetMemoryStatus() (float64, []string) {
 		if isFree {
 			freeFrameCount++
 			frameStatus[frameIndex] = "Livre"
+			frameSamples[frameIndex] = "[vazio]"
 		} else {
-			
 			if status, ok := reverseMap[frameIndex]; ok {
 				frameStatus[frameIndex] = status
 			} else {
-				
 				frameStatus[frameIndex] = "Ocupado (Desconhecido)"
 			}
+
+			pageSize := m.config.TamanhoPagina
+			startIndex := frameIndex * pageSize
+
+			sampleSize := 4
+			if sampleSize > pageSize {
+				sampleSize = pageSize
+			}
+
+			endIndex := startIndex + sampleSize
+			if endIndex > len(m.memory.Data) {
+				endIndex = len(m.memory.Data)
+			}
+
+			sampleBytes := m.memory.Data[startIndex:endIndex]
+
+			var s strings.Builder
+			s.WriteString("[")
+			for i, b := range sampleBytes {
+				s.WriteString(fmt.Sprintf("0x%02x", b))
+				if i < len(sampleBytes)-1 {
+					s.WriteString(" ")
+				}
+			}
+			
+			if pageSize > sampleSize {
+				s.WriteString(" ...]")
+			} else {
+				s.WriteString("]")
+			}
+			frameSamples[frameIndex] = s.String()
 		}
 	}
 
 	percentage := (float64(freeFrameCount) / float64(m.numFrames)) * 100.0
-	return percentage, frameStatus
+	return percentage, frameStatus, frameSamples
 }
 
 func (m *MemoryManager) GetProcessPageTable(id int) (int, *models.PageTable, error) {
